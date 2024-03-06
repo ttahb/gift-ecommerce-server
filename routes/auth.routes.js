@@ -3,12 +3,12 @@ const User = require("../models/User.model");
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 const jwt = require('jsonwebtoken');
-const { isAuth } = require('../middleware/jwt.middleware');
+const { isAuthenticated } = require('../middleware/jwt.middleware');
 
 
 router.post('/signup', async (req, res, next) => {
 
-    const { fullName, email, password, companyName, companySize, role } = req.body;
+    const { fullName, email, password, companyName, companySize } = req.body;
 
     if(fullName === "" || email === "" || password === ""){
         res.status(400).json({message: "Provide valid name, email and password"});
@@ -17,7 +17,7 @@ router.post('/signup', async (req, res, next) => {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
     if (!emailRegex.test(email)) {
-      res.status(400).json({ message: 'Provide a valid email address. !!!!comes from here' });
+      res.status(400).json({ message: 'Please provide a valid email address.' });
       return;
     } 
 
@@ -39,7 +39,7 @@ router.post('/signup', async (req, res, next) => {
 
         const createUser = await User.create({ email, password: hashPassword, fullName, companyName, companySize })
 
-        const newUser = { email: createUser.email, fullName: createUser.fullName, userId: createUser._id, role: createUser.role };
+        const newUser = { email: createUser.email, fullName: createUser.fullName, userId: createUser._id };
 
         return res.status(201).json({ user: newUser })
 
@@ -52,9 +52,15 @@ router.post('/signup', async (req, res, next) => {
 router.post ('/login', async (req, res, next) => {
 
     const { email, password } = req.body;
+    console.log('email', email, 'password', password);
 
-    if(email ==='' || password ===''){
-        res.status(400).json({ message: "Provide valid email and password"});
+    if(!email && !password){
+        res.status(400).json({ message: "Provide email and password."});
+        return;
+    }
+
+    if(email === '' ||  password ===''){
+        res.status(400).json({ message: "Email or password cannot be blank."});
         return;
     }
 
@@ -63,14 +69,15 @@ router.post ('/login', async (req, res, next) => {
         const findUser = await User.findOne({ email })
 
         if(!findUser){
-            res.status(400).json({ message: "User not found"});
+            console.log('here 1')
+            res.status(400).json({ message: "Username or password incorrect."});
             return;
 
         }else{
             const passwordCheck = bcrypt.compareSync( password, findUser.password );
 
             if(passwordCheck){
-                const payload = {email: findUser.email, fullName: findUser.fullName, userId: findUser._id, role: findUser.role};
+                const payload = {email: findUser.email, fullName: findUser.fullName, userId: findUser._id};
 
                 const token = jwt.sign(
                     payload,
@@ -78,9 +85,10 @@ router.post ('/login', async (req, res, next) => {
                     { algorithm: 'HS256', expiresIn: '2h' }
                 );
 
-                return res.status(200).json({ token });
+                return res.status(200).json({ authToken: token });
             } else {
-                return res.status(400).json({ message: "Unable to authenticate the user" });
+                console.log('here 2')
+                return res.status(400).json({ message: "Username or password incorrect." });
             }
         }
 
@@ -91,7 +99,7 @@ router.post ('/login', async (req, res, next) => {
 
 })
 
-router.get('/verify', isAuth, (req, res, next ) => {
+router.get('/verify', isAuthenticated, (req, res, next ) => {
     res.status(200).json(req.payload);
 })
 

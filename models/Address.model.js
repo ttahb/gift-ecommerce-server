@@ -3,33 +3,37 @@ const { Schema, model } = mongoose;
 
 const addressSchema = new Schema(
     {
+        contactPerson: {
+            type: String,
+            require: [true, 'contactPerson is required']
+        },
+
         buildingNumber: {
-            type: Number,
+            type: String,
             require: [true, 'Building number is required']
         },
         street: {
-            type: Number,
+            type: String,
             require: [true, 'Street is required']
         },
         city: {
-            type: Number,
+            type: String,
             require: [true, 'City is required']
         },
         country: {
             type: String,
-            enum: ['Spain'], //If needed add more country, M?
-            default: 'Spain', // if another country is write or choosen? => 'We do not deliver our site of Spain' M?
+            require: [true, 'Country is required']
+            //we will use a country-list package in Front End which user can select a country. We should not default this field
+            // enum: ['Spain'], //If needed add more country, M?
+            // default: 'Spain', // if another country is write or choosen? => 'We do not deliver our site of Spain' M?
         },
-        postCode: {
+        postalCode: {
             type: String,
-            require: [true, 'PostCode is required']
+            require: [true, 'PostalCode is required']
         },
         contactNumber: {
             type: String
-        },
-        contactPerson: {
-            type: String,
-        },
+        }
     },
     {
         timestamps: true

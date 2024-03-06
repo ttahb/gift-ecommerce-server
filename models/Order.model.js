@@ -7,19 +7,27 @@ const orderSchema = new Schema(
             type:Schema.Types.ObjectId, 
             ref: "User"
         },
-        address: {
+        
+        shippingAddress: {
             type:Schema.Types.ObjectId,
             ref: "Address"
         },
-        amounth: {
+
+        billingAddress: {
+            type:Schema.Types.ObjectId,
+            ref: "Address"
+        },
+
+        amount: {
             type: Number,
             require: true
         },
+
         status: {
             type: String,
             // https://support.bigcommerce.com/s/article/Order-Statuses?language=en_US
             // Sorce I found interesting to consider more then the 3 fileds.
-            enum: ["Pending", "Initiated", "Awaiting Payment", "In-progress", "Shipped", "Delivered", "Cancelled", "Partially Refunded", "Refunded"],
+            enum: ["Pending", "Initiated", "Awaiting Payment","Awaiting Fulfillment", "Completed", "Shipped", "Delivered", "Cancelled", "Partially Refunded", "Refunded"],
             default: "Pending",
         }, 
         content: [{

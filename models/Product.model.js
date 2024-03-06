@@ -3,10 +3,16 @@ const User = require("./User.model");
 
 const productSchema = new Schema(
     {
+        // in case we want to know which admin or mod has created this product.
        userId: {
         type: Schema.Types.ObjectId,
         ref: User
-       }, 
+       },
+       
+       lastUpdatedBy: {
+        type: Schema.Types.ObjectId,
+        ref: User
+       },
 
        productName: {
         type: String,
