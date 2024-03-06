@@ -51,4 +51,4 @@ const productSchema = new Schema(
   
   const Product = model("Product", productSchema);
   
-  module.exports = User;
+  module.exports = Product;
