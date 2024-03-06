@@ -7,4 +7,13 @@ const isAdmin = (req, res, next) => {
     }
 }
 
-module.exports = { isAdmin };
+const isModerator = (req, res, next) => {
+    console.log(req.payload.role)
+    if(req.payload.role === 'moderator'){
+        next();
+    } else {
+        return res.status(401).json({message:"Unauthorized access."})
+    }
+}
+
+module.exports = { isAdmin, isModerator };
