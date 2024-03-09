@@ -17,12 +17,14 @@ router.post('/signup', async (req, res, next) => {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
     if (!emailRegex.test(email)) {
+        console.log('hello, testing')
       res.status(400).json({ message: 'Please provide a valid email address.' });
       return;
     } 
 
     const passwordRegex = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/;
     if (!passwordRegex.test(password)) {
+        console.log('hello, testing')
       res.status(400).json({ message: 'Password must have at least 6 characters and contain at least one number, one lowercase and one uppercase letter.' });
       return;
     }
