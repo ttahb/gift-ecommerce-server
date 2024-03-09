@@ -40,10 +40,18 @@ router.post('/signup', async (req, res, next) => {
         const hashPassword = bcrypt.hashSync( password, salt);
 
         const createUser = await User.create({ email, password: hashPassword, fullName, companyName, companySize })
+        if(!createUser){
+            console.log('User not created.');
+            return res.status(500).json({ message: "Internal Server Error"});
+        }
+        const payload = {email: createUser.email, fullName: createUser.fullName, userId: createUser._id, role: createUser.role};
+        const token = jwt.sign(
+            payload,
+            process.env.TOKEN_SECRET,
+            { algorithm: 'HS256', expiresIn: '2h' }
+        );
 
-        const newUser = { email: createUser.email, fullName: createUser.fullName, userId: createUser._id };
-
-        return res.status(201).json({ user: newUser })
+        return res.status(201).json({ authToken: token });
 
     }catch(err){
         console.log(err);
