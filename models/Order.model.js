@@ -5,17 +5,20 @@ const orderSchema = new Schema(
     {
         user: {
             type:Schema.Types.ObjectId, 
-            ref: "User"
+            ref: "User",
+            require: true
         },
         
         shippingAddress: {
             type:Schema.Types.ObjectId,
-            ref: "Address"
+            ref: "Address",
+            require: true
         },
 
         billingAddress: {
             type:Schema.Types.ObjectId,
-            ref: "Address"
+            ref: "Address",
+            require: true
         },
 
         amount: {
@@ -25,10 +28,8 @@ const orderSchema = new Schema(
 
         status: {
             type: String,
-            // https://support.bigcommerce.com/s/article/Order-Statuses?language=en_US
-            // Sorce I found interesting to consider more then the 3 fileds.
-            enum: ["Pending", "Initiated", "Awaiting Payment","Awaiting Fulfillment", "Completed", "Shipped", "Delivered", "Cancelled", "Partially Refunded", "Refunded"],
-            default: "Pending",
+            enum: ["Order Created", "Confirmed", "Needs Payment confirmation", "Completed", "Delivered", "Cancelled", "Refunded"],
+            default: "Order Created",
         }, 
         content: [{
             productId:{
@@ -39,11 +40,6 @@ const orderSchema = new Schema(
                 type: String,
                 require: true
             },
-        // Suggestion for the top 2 fields, to refer to the obj.Type Product
-                // product: {
-                //     type: Schema.Types.ObjectId,
-                //     ref: "Product"
-                // }
             price: {
                 type:Number,
                 require: true
