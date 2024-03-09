@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const Order = require("../models/Order.model");
 const Address = require("../models/Address.model");
-const {isAdmin} = require('../middleware/guard.middleware');
+const { isAdminOrModerator } = require('../middleware/guard.middleware');
 
 router.get("/orders", async (req, res, next) => {
 
@@ -20,6 +20,11 @@ router.get("/orders/:orderId", async (req, res, next) => {
 
     const { orderId } = req.params;
 
+    if (!mongoose.Types.ObjectId.isValid(projectId)) {
+        res.status(400).json({ message: "Specified id is not valid" });
+        return;
+    }
+
     try{
         const singleOrder = await Order.findById(orderId)
                                         .populate("user")
@@ -34,7 +39,7 @@ router.get("/orders/:orderId", async (req, res, next) => {
     }
 })
 
-router.post('/orders', isAdmin, async (req, res, next) => {
+router.post('/orders', async (req, res, next) => {
    
     try{     
         const [ billingAddress, shippingAddress ] = await Promise.all([
@@ -57,8 +62,13 @@ router.post('/orders', isAdmin, async (req, res, next) => {
 
 })
 
-router.put("/orders/:orderId", isAdmin, async (req, res, next) => {
+router.put("/orders/:orderId", isAdminOrModerator, async (req, res, next) => {
     const { orderId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(projectId)) {
+        res.status(400).json({ message: "Specified id is not valid" });
+        return;
+    }
 
    try{ 
     const updatedOrder = await Order.findByIdAndUpdate(orderId, req.body, {new: true});
@@ -70,8 +80,13 @@ router.put("/orders/:orderId", isAdmin, async (req, res, next) => {
 
 })
 
-router.patch("/orders/:orderId", isAdmin, async (req, res, next) => {
+router.patch("/orders/:orderId", isAdminOrModerator, async (req, res, next) => {
     const { orderId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(projectId)) {
+        res.status(400).json({ message: "Specified id is not valid" });
+        return;
+    }
     
     try{
         const updateOneFiled = await Order.findByIdAndUpdate(orderId, req.body, {new: true});
