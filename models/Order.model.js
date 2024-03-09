@@ -39,7 +39,7 @@ const orderSchema = new Schema(
                 type: String,
                 require: true
             },
-        // Suggestion for the top 2 fileds, to refer to the obj.Type Product
+        // Suggestion for the top 2 fields, to refer to the obj.Type Product
                 // product: {
                 //     type: Schema.Types.ObjectId,
                 //     ref: "Product"

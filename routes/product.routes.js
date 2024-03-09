@@ -27,4 +27,5 @@ router.post('/products',isAuthenticated, isAdmin, async(req, res, next) => {
     }
 })
 
+
 module.exports = router;

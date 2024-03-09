@@ -31,7 +31,7 @@ const productSchema = new Schema(
 
        image: {
         type: String,
-        default: '' //TODO AIM - Add a default image later.
+        default: 'https://drive.google.com/file/d/1C7ZnQZjSuFHNjIiicKTFB967Rb-zBvl_/view?usp=sharing',
        },
 
        hearts: {
