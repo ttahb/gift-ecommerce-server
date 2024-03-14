@@ -2,12 +2,21 @@ const router = require("express").Router();
 const Order = require("../models/Order.model");
 const Address = require("../models/Address.model");
 const { isAdminOrModerator } = require('../middleware/guard.middleware');
-
+const {generateSecureRandom, formatDate} = require('./../utils/utils');
+const mongoose = require("mongoose");
 router.get("/orders", async (req, res, next) => {
 
     try{
-        const allOrders = await Order.find();
-        res.json(allOrders);
+        const allOrders = await Order.find().populate('user');
+
+        const modifiedOrders = allOrders.map(order => {
+            order = order.toObject();
+            order.createdAt = formatDate(order.createdAt)
+            order.updatedAt = formatDate(order.updatedAt)
+            return order;
+        })
+        console.log(modifiedOrders)
+        res.json(modifiedOrders);
         return;
     } catch(err){
         console.log(err);
@@ -41,7 +50,9 @@ router.get("/orders/:orderId", async (req, res, next) => {
 
 router.post('/orders', async (req, res, next) => {
    
-    try{     
+    try{ 
+        
+        console.log('req.body', req.body);
         const [ billingAddress, shippingAddress ] = await Promise.all([
             Address.create(req.body.billingAddress),
             Address.create(req.body.shippingAddress)
@@ -50,13 +61,15 @@ router.post('/orders', async (req, res, next) => {
         req.body.billingAddress = billingAddress._id;
         req.body.shippingAddress = shippingAddress._id;
         req.body.user = req.payload.userId;
+        //Generating a unique order number.
+        req.body.orderNumber = generateSecureRandom(10,99) + '-' + Date.now() + '-' + generateSecureRandom(1000,9999)
 
         const order = await Order.create(req.body);
         // console.log("one order ==>", order)
         res.status(201).json(order);
 
     } catch(err){
-        // console.log(err)
+        console.log('here',err)
         res.status(400).json({message: "Internal Server Error / Order not created."})
     }
 
@@ -83,7 +96,7 @@ router.put("/orders/:orderId", isAdminOrModerator, async (req, res, next) => {
 router.patch("/orders/:orderId", isAdminOrModerator, async (req, res, next) => {
     const { orderId } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(projectId)) {
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
         res.status(400).json({ message: "Specified id is not valid" });
         return;
     }
@@ -95,7 +108,6 @@ router.patch("/orders/:orderId", isAdminOrModerator, async (req, res, next) => {
         res.status(400).json({ message: "Internal Server Error / The order has not been updated."});
     }
 })
-
 
 
 module.exports = router;

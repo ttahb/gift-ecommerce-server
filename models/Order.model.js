@@ -8,6 +8,11 @@ const orderSchema = new Schema(
             ref: "User",
             require: true
         },
+
+        orderNumber: {
+            type: String,
+            require: true
+        },
         
         shippingAddress: {
             type:Schema.Types.ObjectId,
@@ -31,6 +36,12 @@ const orderSchema = new Schema(
             enum: ["Order Created", "Confirmed", "Needs Payment confirmation", "Completed", "Delivered", "Cancelled", "Refunded"],
             default: "Order Created",
         }, 
+
+        // served: {
+        //     type: Boolean,
+        //     default: false
+        // },
+
         content: [{
             productId:{
                 type: String,
