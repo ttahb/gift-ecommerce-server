@@ -6,11 +6,17 @@ const {generateSecureRandom} = require('./../utils/utils');
 const mongoose = require("mongoose");
 router.get("/orders", async (req, res, next) => {
     try{
-        const allOrders = await Order.find().populate('user');
+        let allOrders;
+        if(req.payload.role.toLowerCase() === 'admin'){
+             allOrders = await Order.find().populate('user');
+        } else {
+            allOrders = await Order.find({'user': new mongoose.Types.ObjectId(req.payload.userId)}).populate('user')
+        }
+       
         res.json(allOrders.sort((o1,o2) => o2.createdAt - o1.createdAt));
     } catch(err){
         console.log(err);
-        return res.status(500).json({ message: "Error while getting all orders"});
+        return res.status(500).json({ message: "Internal server error."});
     }
 
 });
