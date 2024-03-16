@@ -25,7 +25,7 @@ router.get("/orders/:orderId", async (req, res, next) => {
 
     const { orderId } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(projectId)) {
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
         res.status(400).json({ message: "Specified id is not valid" });
         return;
     }
