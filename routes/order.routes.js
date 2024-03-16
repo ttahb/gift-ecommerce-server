@@ -2,22 +2,12 @@ const router = require("express").Router();
 const Order = require("../models/Order.model");
 const Address = require("../models/Address.model");
 const { isAdminOrModerator } = require('../middleware/guard.middleware');
-const {generateSecureRandom, formatDate} = require('./../utils/utils');
+const {generateSecureRandom} = require('./../utils/utils');
 const mongoose = require("mongoose");
 router.get("/orders", async (req, res, next) => {
-
     try{
         const allOrders = await Order.find().populate('user');
-
-        const modifiedOrders = allOrders.map(order => {
-            order = order.toObject();
-            order.createdAt = formatDate(order.createdAt)
-            order.updatedAt = formatDate(order.updatedAt)
-            return order;
-        })
-        console.log(modifiedOrders)
-        res.json(modifiedOrders);
-        return;
+        res.json(allOrders.sort((o1,o2) => o2.createdAt - o1.createdAt));
     } catch(err){
         console.log(err);
         return res.status(500).json({ message: "Error while getting all orders"});

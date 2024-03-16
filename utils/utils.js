@@ -11,19 +11,4 @@ const generateSecureRandom = (min, max) => {
     return min + randomValue % range;
 }
 
-const formatDate = (date) => {
-    const options = {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true 
-    };
-
-    const formattedDate = new Intl.DateTimeFormat('en', options).format(date);
-    console.log('formattedDate', formattedDate)
-    return formattedDate;
-}
-
-module.exports = {generateSecureRandom, formatDate};
+module.exports = {generateSecureRandom};
