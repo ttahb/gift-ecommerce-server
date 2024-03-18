@@ -30,7 +30,27 @@ const userSchema = new Schema(
       type: String,
       required: [true, 'Password is required.']
     },
-    
+    basket: [{
+      productImg: {
+        type: String,
+      },
+      productId:{
+          type: String,
+          require: true
+      },
+      productName: {
+          type: String,
+          require: true
+      },
+      price: {
+          type:Number,
+          require: true
+      },
+      quantity: {
+          type: Number,
+          require: true
+      }
+  }]
   },
   {
     // this second object adds extra properties: `createdAt` and `updatedAt`    

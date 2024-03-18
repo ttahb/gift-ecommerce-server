@@ -35,7 +35,8 @@ const productSchema = new Schema(
        },
 
        hearts: {
-        type: Number
+        type: Number,
+        default: 5
        },
 
        tags: {
