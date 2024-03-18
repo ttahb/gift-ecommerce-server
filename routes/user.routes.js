@@ -8,14 +8,17 @@ const {isAdmin} = require('../middleware/guard.middleware');
 router.get('/users/:userId', async(req, res) => {
   
   const { userId } = req.params;
-
+  // if(userId === 'current'){
+  //   userId = req.paload.userId;
+  // }
+  
   if(userId !== req.payload.userId  &&  req.payload.role !== 'admin') {
     res.status(401).json({message: 'Unauthorized access'});
     return;
   }
   
   try {
-      const user = await User.findById(req.payload.userId).select('-password');
+      const user = await User.findById(userId).select('-password');
       res.json(user);
     } catch (error) {
       res.status(500).json({ message: error.message });

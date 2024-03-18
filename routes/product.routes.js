@@ -40,10 +40,13 @@ router.get('/products/:productId', async(req, res, next) => {
 
 
 /* **************      PROTECTED Routes below        *********** */
+
+
 router.post('/products',isAuthenticated, isAdmin, async(req, res, next) => {
+    
     try {
-        const {productName, price, description, image, tags} = req.body;
-        const product = await Product.create({productName, price, description, image, tags, userId: req.payload.userId, lastUpdatedBy: req.payload.userId});
+        const {productName, price, description, image, tags, hearts } = req.body;
+        const product = await Product.create({productName, price, description, image, tags, hearts, userId: req.payload.userId, lastUpdatedBy: req.payload.userId});
         res.status(201).json(product);
     } catch(error){
         console.log(error);

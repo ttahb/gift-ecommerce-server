@@ -32,6 +32,9 @@ const orderSchema = new Schema(
             default: "Order Created",
         }, 
         content: [{
+            productImg: {
+                type: String,
+            },
             productId:{
                 type: String,
                 require: true
