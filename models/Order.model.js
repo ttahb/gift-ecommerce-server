@@ -43,6 +43,9 @@ const orderSchema = new Schema(
         // },
 
         content: [{
+            productImg: {
+                type: String,
+            },
             productId:{
                 type: String,
                 require: true

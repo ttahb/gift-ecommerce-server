@@ -18,6 +18,9 @@ require("./config")(app);
 
 
 // 👇 Start handling routes here
+const fileRoutes = require("./routes/uploadFile.routes");
+app.use("/api", fileRoutes);
+
 const indexRoutes = require("./routes/index.routes");
 app.use("/api", indexRoutes);
 

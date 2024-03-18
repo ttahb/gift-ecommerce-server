@@ -110,6 +110,7 @@ router.post ('/login', async (req, res, next) => {
 })
 
 router.get('/verify', isAuthenticated, (req, res, next ) => {
+    console.log('payload ==> ', req.payload)
     res.status(200).json(req.payload);
 })
 
