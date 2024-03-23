@@ -4,6 +4,7 @@ const Address = require("../models/Address.model");
 const { isAdminOrModerator } = require('../middleware/guard.middleware');
 const {generateSecureRandom} = require('./../utils/utils');
 const mongoose = require("mongoose");
+const User = require("../models/User.model");
 router.get("/orders", async (req, res, next) => {
     try{
         let allOrders;
@@ -62,6 +63,23 @@ router.post('/orders', async (req, res, next) => {
 
         const order = await Order.create(req.body);
         // console.log("one order ==>", order)
+        if(order){
+            console.log('Order is created. Goint to delete user basket');
+            try {
+                const user = await User.findByIdAndUpdate(req.body.user, {basket: []}, {new:true} );
+                // console.log('user', user)
+                // console.log('content', user.basket)
+                if(user && user.basket.length === 0){
+                    console.log('User basket deleted.')
+                } else {
+                    console.log('could not delete user basket');
+                }
+            } catch(error){
+                console.log('Order is created but something went wrong in user basket', err);
+                res.status(500).json({message: `Order is created with oderNumber - ${order.orderNumber}. But something went wrong in the backend.`})
+            }
+            
+        }
         res.status(201).json(order);
 
     } catch(err){
