@@ -48,7 +48,6 @@ router.get("/orders/:orderId", async (req, res, next) => {
 router.post('/orders', async (req, res, next) => {
    
     try{ 
-        
         console.log('req.body', req.body);
         const [ billingAddress, shippingAddress ] = await Promise.all([
             Address.create(req.body.billingAddress),
@@ -107,12 +106,18 @@ router.put("/orders/:orderId", isAdminOrModerator, async (req, res, next) => {
 
 })
 
-router.patch("/orders/:orderId", isAdminOrModerator, async (req, res, next) => {
+router.patch("/orders/:orderId", async (req, res, next) => {
     const { orderId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
         res.status(400).json({ message: "Specified id is not valid" });
         return;
+    }
+
+    const {status} = req.body;
+    if(req.payload.role === 'customer' && status !== 'Cancelled' && status !== 'Needs Payment confirmation' && status !== 'Paid' ){
+        res.status(401).json({message:"User not authorized to perfom this operation"});
+        return
     }
     
     try{
@@ -122,6 +127,5 @@ router.patch("/orders/:orderId", isAdminOrModerator, async (req, res, next) => {
         res.status(400).json({ message: "Internal Server Error / The order has not been updated."});
     }
 })
-
 
 module.exports = router;
