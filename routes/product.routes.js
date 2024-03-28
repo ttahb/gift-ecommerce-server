@@ -3,6 +3,7 @@ const Product = require('../models/Product.model');
 const { isAuthenticated } = require('../middleware/jwt.middleware');
 const {isAdmin, isModerator, isAdminOrModerator} = require('../middleware/guard.middleware');
 const mongoose = require("mongoose");
+const { convertEuroToCents } = require('../utils/utils');
 
 // GET /products - should be accessible to all
 router.get('/products', async(req, res, next) => {
@@ -46,7 +47,8 @@ router.post('/products',isAuthenticated, isAdmin, async(req, res, next) => {
     
     try {
         const {productName, price, description, image, tags, hearts } = req.body;
-        const product = await Product.create({productName, price, description, image, tags, hearts, userId: req.payload.userId, lastUpdatedBy: req.payload.userId});
+        const priceInCents =  convertEuroToCents(price);
+        const product = await Product.create({productName, price: priceInCents, description, image, tags, hearts, userId: req.payload.userId, lastUpdatedBy: req.payload.userId});
         res.status(201).json(product);
     } catch(error){
         console.log(error);
@@ -61,8 +63,12 @@ router.put('/products/:productId', isAuthenticated, isAdminOrModerator, async(re
         return;
     }
 
-    try {     
-        const updatedProduct = await Product.findByIdAndUpdate(productId, req.body, {new:true});
+    try {   
+        
+        const { price, ...rest } = req.body;
+        const priceInCents =  convertEuroToCents(price);
+
+        const updatedProduct = await Product.findByIdAndUpdate(productId, { price: priceInCents, ...rest }, {new:true});
 
         if (!updatedProduct) {
             return res.status(404).json({ message: `Product with Product ID - ${productId} is not found.` });
