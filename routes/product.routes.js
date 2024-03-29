@@ -107,8 +107,12 @@ router.patch('/products/:productId', isAuthenticated, isAdminOrModerator, async(
         return;
     }
 
-    try {     
-        const patchedProduct = await Product.findByIdAndUpdate(productId, req.body, {new:true});
+    try { 
+        
+        const { price, ...rest } = req.body;
+        const priceInCents =  convertEuroToCents(price);
+
+        const patchedProduct = await Product.findByIdAndUpdate(productId,  { price: priceInCents, ...rest }, {new:true});
 
         if (!patchedProduct) {
             return res.status(404).json({ message: `Product with Product ID - ${productId} is not found.` });
