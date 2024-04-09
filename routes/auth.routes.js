@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const saltRounds = 10;
 const jwt = require('jsonwebtoken');
 const { isAuthenticated } = require('../middleware/jwt.middleware');
+const axios = require('axios');
 
 
 router.post('/signup', async (req, res, next) => {
@@ -112,6 +113,42 @@ router.post ('/login', async (req, res, next) => {
 router.get('/verify', isAuthenticated, (req, res, next ) => {
     console.log('payload ==> ', req.payload)
     res.status(200).json(req.payload);
+})
+
+router.post('/login-google', async (req,res, next) => {
+
+    const googleToken = req.body.token;
+    // console.log('this is the req.body i have recieved ===> ', googleToken);
+    if (typeof googleToken !== 'string') {
+        return res.status(400).json({ message: 'Internal Server Error'})
+    }
+
+    try {
+        const response = await axios.get(`https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=${googleToken}`)
+        // console.log("this is the respince from teh call to the googleapis ===> ",response.data.email)
+        const foundUser = await User.findOne({ email: response.data.email })
+
+        if(foundUser) {
+            // console.log('this is the foudn user from the DB ===> here he is ==>', foundUser)
+            const payload = {email: foundUser.email, fullName: foundUser.fullName, userId: foundUser._id, role: foundUser.role};
+
+                const token = jwt.sign(
+                    payload,
+                    process.env.TOKEN_SECRET,
+                    { algorithm: 'HS256', expiresIn: '2h' }
+                );
+
+                return res.status(200).json({ authToken: token });
+        
+        } else {
+            return res.status(401).json({message: 'Non existing user'})
+        }
+
+    } catch(err) {
+        // console.log(err)
+        return res.status(400).json({ message: 'Internal Server Error'})
+    }
+
 })
 
 
