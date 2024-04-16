@@ -118,14 +118,14 @@ router.get('/verify', isAuthenticated, (req, res, next ) => {
 router.post('/login-google', async (req,res, next) => {
 
     const googleToken = req.body.token;
-    // console.log('this is the req.body i have recieved ===> ', googleToken);
+    console.log('this is the req.body i have recieved ===> ', googleToken);
     if (typeof googleToken !== 'string') {
         return res.status(400).json({ message: 'Internal Server Error'})
     }
 
     try {
         const response = await axios.get(`https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=${googleToken}`)
-        // console.log("this is the respince from teh call to the googleapis ===> ",response.data.email)
+        console.log("this is the respince from teh call to the googleapis ===> ",response.data)
         const foundUser = await User.findOne({ email: response.data.email })
 
         if(foundUser) {
