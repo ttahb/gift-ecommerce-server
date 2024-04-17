@@ -115,6 +115,8 @@ router.get('/verify', isAuthenticated, (req, res, next ) => {
     res.status(200).json(req.payload);
 })
 
+// Google login and register... maybe to put them in the same path? 
+
 router.post('/login-google', async (req,res, next) => {
 
     const googleToken = req.body.token;
@@ -125,7 +127,7 @@ router.post('/login-google', async (req,res, next) => {
 
     try {
         const response = await axios.get(`https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=${googleToken}`)
-        console.log("this is the respince from teh call to the googleapis ===> ",response.data)
+        console.log("this is the respince from teh call to the googleapis ===> ",response.data.email)
         const foundUser = await User.findOne({ email: response.data.email })
 
         if(foundUser) {
@@ -149,6 +151,45 @@ router.post('/login-google', async (req,res, next) => {
         return res.status(400).json({ message: 'Internal Server Error'})
     }
 
+})
+
+router.post("/register-google", async (req, res, next) => {
+
+    const googleToken = req.body.token
+    if(typeof googleToken !== "string"){
+        return res.status(400).json({ message: 'Internal Server Error'})
+    }
+
+    try{
+
+        const response = await axios.get(`https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=${googleToken}`)
+            // console.log(response.data)
+        const findUser = await User.findOne({ email: response.data.email})
+
+        if(findUser){
+            return res.status(400).json( { message: 'User is already registered with this email' } )
+        }
+
+        const createUser = await User.create({ email: response.data.email, fullName: response.data.name, companyName: '', companySize: '0-100' })
+            // console.log("this is the created USer",createUser)
+            
+        if(!createUser){
+            return res.status(500).json({ message: 'Internal Server Error'})
+        }
+
+        const payload = { email: createUser.email, fullName: createUser.fullName, userId: createUser._id, role: createUser.role}
+        const token = jwt.sign(
+            payload,
+            process.env.TOKEN_SECRET,
+            { algorithm: 'HS256', expiresIn: '2h'}
+        );
+
+        return res.status(200).json({ authToken: token})
+
+    }catch(err){
+        console.log(err)
+        response.status(400).json({ message: 'Internal Server Error'})
+    }
 })
 
 
