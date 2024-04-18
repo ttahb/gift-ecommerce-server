@@ -192,5 +192,21 @@ router.post("/register-google", async (req, res, next) => {
     }
 })
 
+router.get('/yahoo-login', (req, res, next) => {
+    const clientId = 'dj0yJmk9dXBqRXhKUHBlWXF6JmQ9WVdrOVJtWnBaRkZsUlU0bWNHbzlNQT09JnM9Y29uc3VtZXJzZWNyZXQmc3Y9MCZ4PWEw'
+    const redirectUri = 'http://localhost:5005/auth/yahoo-register/callback'
+
+    const yahooTokenAsk = `https://api.login.yahoo.com/oauth2/request_auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code`;
+    console.log('hello bfore the redirect to YAHOO')
+    res.redirect(yahooTokenAsk)
+})
+
+router.post('/yahoo-register/callback', (req, res, next) => {
+    console.log('hello bfore the POST yahoo ?')
+    const { code } = req.query
+
+    console.log("this is the code form the yahoo", code)
+})
+
 
 module.exports = router;
