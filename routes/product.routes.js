@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 const { convertEuroToCents } = require('../utils/utils');
 
 // GET /products - should be accessible to all
-router.get('/products', async(req, res, next) => {
+router.get('/products', async (req, res, next) => {
 
     try {
 
@@ -19,7 +19,6 @@ router.get('/products', async(req, res, next) => {
 
         const products = await Product.find().skip(startIndex).limit(pageSize);
         const totalProductsCount = await Product.countDocuments();
-
         const isLastPage = endIndex >= totalProductsCount;
 
         res.json({products, isLastPage});
@@ -51,6 +50,7 @@ router.get('/products/:productId', async(req, res, next) => {
         console.log(error);
         res.status(500).json({ message: "Failed to get the product"});
     }
+    
 })
 
 

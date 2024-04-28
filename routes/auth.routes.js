@@ -96,6 +96,8 @@ router.post ('/login', async (req, res, next) => {
                     { algorithm: 'HS256', expiresIn: '2h' }
                 );
 
+                console.log('this is the token we have created =====> HERE +==========>  ', token)
+
                 return res.status(200).json({ authToken: token });
             } else {
                 console.log('here 2')
@@ -192,21 +194,26 @@ router.post("/register-google", async (req, res, next) => {
     }
 })
 
-router.get('/yahoo-login', (req, res, next) => {
-    const clientId = 'dj0yJmk9dXBqRXhKUHBlWXF6JmQ9WVdrOVJtWnBaRkZsUlU0bWNHbzlNQT09JnM9Y29uc3VtZXJzZWNyZXQmc3Y9MCZ4PWEw'
-    const redirectUri = 'http://localhost:5005/auth/yahoo-register/callback'
+// router.get('/yahoo-login', (req, res, next) => {
+//     const clientId = 'dj0yJmk9N3poeU0ya2M5OTZrJmQ9WVdrOU9GWTRlbXBTTXprbWNHbzlNQT09JnM9Y29uc3VtZXJzZWNyZXQmc3Y9MCZ4PTBk';
+//     const clientSecret = 'b46f200d7bef37f8772a203eca13ef99c96a806c'
+//     const redirectUri = '/yahoo-register/callback';
+//     // 'http://localhost:5005/auth'
 
-    const yahooTokenAsk = `https://api.login.yahoo.com/oauth2/request_auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code`;
-    console.log('hello bfore the redirect to YAHOO')
-    res.redirect(yahooTokenAsk)
-})
+//     const yahooTokenAsk = `https://api.login.yahoo.com/oauth2/request_auth?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}`;
+//     //?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code
+//     console.log('hello bfore the redirect to YAHOO')
+//     console.log(res)
+//     res.redirect(yahooTokenAsk)
+// })
 
-router.post('/yahoo-register/callback', (req, res, next) => {
-    console.log('hello bfore the POST yahoo ?')
-    const { code } = req.query
+// router.post('/yahoo-register/callback', (req, res, next) => {
+//     // passport.authenticate('yahoo', { failureRedirect: '/login' }),
+//     console.log('hello bfore the POST yahoo ?')
+//     const { code } = req.query
 
-    console.log("this is the code form the yahoo", code)
-})
+//     console.log("this is the code form the yahoo", req.query)
+// })
 
 
 module.exports = router;
