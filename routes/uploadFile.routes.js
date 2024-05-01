@@ -14,7 +14,7 @@ router.post("/upload", fileUploader.single("img"), (req, res, next) => {
 });
 
 router.post("/delete", upload.none(), (req, res, next) => {
-    console.log('REQ from the delete path ', req.body.publicIdOfCloudinary)
+    // console.log('REQ from the delete path ', req.body.publicIdOfCloudinary)
     const publicIdOfCloudinary = req.body.publicIdOfCloudinary;
 
     cloudinary.uploader.destroy(publicIdOfCloudinary, {invalidate: true});
