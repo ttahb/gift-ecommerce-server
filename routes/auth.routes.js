@@ -63,7 +63,7 @@ router.post('/signup', async (req, res, next) => {
 router.post ('/login', async (req, res, next) => {
 
     const { email, password } = req.body;
-    console.log('email', email, 'password', password);
+    // console.log('email', email, 'password', password);
 
     if(!email && !password){
         res.status(400).json({ message: "Provide email and password."});
