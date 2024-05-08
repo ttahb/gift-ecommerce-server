@@ -5,6 +5,7 @@ const saltRounds = 10;
 const jwt = require('jsonwebtoken');
 const { isAuthenticated } = require('../middleware/jwt.middleware');
 const axios = require('axios');
+const { google } = require('googleapis');
 
 
 router.post('/signup', async (req, res, next) => {
@@ -119,40 +120,89 @@ router.get('/verify', isAuthenticated, (req, res, next ) => {
 
 // Google login and register... maybe to put them in the same path? 
 
-router.post('/login-google', async (req,res, next) => {
+router.get('/login-google', async (req,res, next) => {
 
-    const googleToken = req.body.token;
-    console.log('this is the req.body i have recieved ===> ', googleToken);
-    if (typeof googleToken !== 'string') {
-        return res.status(400).json({ message: 'Internal Server Error'})
+    try{
+        const oauth2Client = new google.auth.OAuth2(
+            process.env.CLIENT_ID,
+            process.env.CLIENT_SECRET,
+            process.env.REDIRECT_URI
+        );
+
+        const scopes = [
+            'https://www.googleapis.com/auth/userinfo.profile', 
+            'https://www.googleapis.com/auth/userinfo.email openid'
+        ];
+
+        const authorizationUrl = oauth2Client.generateAuthUrl({
+            access_type: 'offline',
+            scope: scopes,
+            include_granted_scopes: true
+        });
+
+        const response = {
+            authorizationUrl,
+            procces: "successful"
+        };
+
+        res.json(response);
+
+    }catch(err){
+        res.status(400).json({ errorMsg: "Internal Server Error"})
     }
 
-    try {
-        const response = await axios.get(`https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=${googleToken}`)
-        console.log("this is the respince from teh call to the googleapis ===> ",response.data.email)
-        const foundUser = await User.findOne({ email: response.data.email })
+})
 
-        if(foundUser) {
-            // console.log('this is the foudn user from the DB ===> here he is ==>', foundUser)
-            const payload = {email: foundUser.email, fullName: foundUser.fullName, userId: foundUser._id, role: foundUser.role};
+router.get("/google-login/callback", async (req, res, next) => {
+    const { code } = req.query;
 
-                const token = jwt.sign(
-                    payload,
-                    process.env.TOKEN_SECRET,
-                    { algorithm: 'HS256', expiresIn: '2h' }
-                );
 
-                return res.status(200).json({ authToken: token });
-        
+    try{
+        const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
+            client_id: process.env.CLIENT_ID,
+            client_secret: process.env.CLIENT_SECRET,
+            redirect_uri: process.env.REDIRECT_URI,
+            code: code,
+            grant_type: 'authorization_code'
+        });
+        // console.log("token response from google auth ==> ",tokenResponse.data);
+
+        const accessToken = await tokenResponse.data.id_token;
+        const decodeToken = await jwt.decode(accessToken);
+        // console.log("decoded token here ==> ", decodeToken)
+
+        const foundUser = await User.findOne({ email: decodeToken.email })
+
+        if(foundUser){
+
+            const payload = {
+                email: foundUser.email, 
+                fullName: foundUser.fullName, 
+                userId: foundUser._id, 
+                role: foundUser.role
+            }
+
+            const token = jwt.sign(
+                payload,
+                process.env.TOKEN_SECRET,
+                { algorithm: 'HS256', expiresIn: '2h' }
+            );
+
+            res.cookie('JWToken', token, { path: '/' });
+            res.send(`
+                <script>
+                    window.close();
+                    window.opener.location.href = 'http://localhost:5173/verify-client';
+                </script>
+            `);
+            
         } else {
-            return res.status(401).json({message: 'Non existing user'})
+            return res.status(400).json({ message: 'User not found'});
         }
 
-    } catch(err) {
-        // console.log(err)
-        return res.status(400).json({ message: 'Internal Server Error'})
+    }catch(err){
+        res.status(400).json({ errorMsg: "Internal Server Error"});
     }
-
 })
 
 router.post("/register-google", async (req, res, next) => {
@@ -189,31 +239,8 @@ router.post("/register-google", async (req, res, next) => {
         return res.status(200).json({ authToken: token})
 
     }catch(err){
-        console.log(err)
-        response.status(400).json({ message: 'Internal Server Error'})
+        res.status(400).json({ message: 'Internal Server Error'})
     }
 })
-
-// router.get('/yahoo-login', (req, res, next) => {
-//     const clientId = 'dj0yJmk9N3poeU0ya2M5OTZrJmQ9WVdrOU9GWTRlbXBTTXprbWNHbzlNQT09JnM9Y29uc3VtZXJzZWNyZXQmc3Y9MCZ4PTBk';
-//     const clientSecret = 'b46f200d7bef37f8772a203eca13ef99c96a806c'
-//     const redirectUri = '/yahoo-register/callback';
-//     // 'http://localhost:5005/auth'
-
-//     const yahooTokenAsk = `https://api.login.yahoo.com/oauth2/request_auth?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}`;
-//     //?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code
-//     console.log('hello bfore the redirect to YAHOO')
-//     console.log(res)
-//     res.redirect(yahooTokenAsk)
-// })
-
-// router.post('/yahoo-register/callback', (req, res, next) => {
-//     // passport.authenticate('yahoo', { failureRedirect: '/login' }),
-//     console.log('hello bfore the POST yahoo ?')
-//     const { code } = req.query
-
-//     console.log("this is the code form the yahoo", req.query)
-// })
-
 
 module.exports = router;
