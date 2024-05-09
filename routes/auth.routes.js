@@ -120,13 +120,25 @@ router.get('/verify', isAuthenticated, (req, res, next ) => {
 
 // Google login and register... maybe to put them in the same path? 
 
-router.get('/login-google', async (req,res, next) => {
+router.post('/login-google', async (req,res, next) => {
+    const evaluate = req.body.numb;
+    console.log(evaluate)
+
+    let redirectUri;
+    if(evaluate === 0){
+        console.log("from 0 ")
+        redirectUri = process.env.REGISTER_REDIRECT_URI
+    } else if (evaluate === 1) {
+        console.log('from 1')
+        redirectUri = process.env.LOGIN_REDIRECT_URI
+    }
 
     try{
+
         const oauth2Client = new google.auth.OAuth2(
             process.env.CLIENT_ID,
             process.env.CLIENT_SECRET,
-            process.env.REDIRECT_URI
+            redirectUri
         );
 
         const scopes = [
@@ -156,12 +168,11 @@ router.get('/login-google', async (req,res, next) => {
 router.get("/google-login/callback", async (req, res, next) => {
     const { code } = req.query;
 
-
     try{
         const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
             client_id: process.env.CLIENT_ID,
             client_secret: process.env.CLIENT_SECRET,
-            redirect_uri: process.env.REDIRECT_URI,
+            redirect_uri: process.env.LOGIN_REDIRECT_URI,
             code: code,
             grant_type: 'authorization_code'
         });
@@ -197,7 +208,12 @@ router.get("/google-login/callback", async (req, res, next) => {
             `);
             
         } else {
-            return res.status(400).json({ message: 'User not found'});
+            // res.status(400).json({ errorMsg: "Internal Server Error"})
+            return res.status(400).send(`
+                <div style="textAlign: 'center'">
+                    <p style="color: 'red', fontSize: '16px'"> User with this email does not exist </p>
+                </div>
+            `);
         }
 
     }catch(err){
@@ -205,42 +221,72 @@ router.get("/google-login/callback", async (req, res, next) => {
     }
 })
 
-router.post("/register-google", async (req, res, next) => {
-
-    const googleToken = req.body.token
-    if(typeof googleToken !== "string"){
-        return res.status(400).json({ message: 'Internal Server Error'})
-    }
+router.get("/google-register/callback", async (req, res, next) => {
+    const { code } = req.query;
 
     try{
 
-        const response = await axios.get(`https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=${googleToken}`)
-            // console.log(response.data)
-        const findUser = await User.findOne({ email: response.data.email})
+        const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
+            client_id: process.env.CLIENT_ID,
+            client_secret: process.env.CLIENT_SECRET,
+            redirect_uri: process.env.REGISTER_REDIRECT_URI,
+            code: code,
+            grant_type: 'authorization_code'
+        });
+        // console.log("token response from google auth ==> ",tokenResponse.data);
 
-        if(findUser){
-            return res.status(400).json( { message: 'User is already registered with this email' } )
+        const accessToken = await tokenResponse.data.id_token;
+        const decodeToken = await jwt.decode(accessToken);
+        // console.log("decoded token here ==> ", decodeToken)
+
+        const foundUser = await User.findOne({ email: decodeToken.email });
+
+        if(foundUser){
+            res.send(`
+            <div style="textAlign: 'center'">
+                    <p style="color: 'red', fontSize: '16px'"> User with this email already exist </p>
+                </div>
+        `);
         }
 
-        const createUser = await User.create({ email: response.data.email, fullName: response.data.name, companyName: '', companySize: '0-100' })
-            // console.log("this is the created USer",createUser)
-            
-        if(!createUser){
-            return res.status(500).json({ message: 'Internal Server Error'})
+        if(!foundUser){
+            const createUser = await User.create({ 
+                email: decodeToken.email, 
+                fullName: decodeToken.name, 
+                companyName: '', 
+                companySize: '0-100' 
+            });
+                // console.log("this is the created USer",createUser)
+                
+            if(!createUser){
+                return res.status(500).json({ message: 'Internal Server Error'})
+            };
+
+            const payload = { 
+                email: createUser.email, 
+                fullName: createUser.fullName, 
+                userId: createUser._id, role: 
+                createUser.role
+            };
+
+            const token = jwt.sign(
+                payload,
+                process.env.TOKEN_SECRET,
+                { algorithm: 'HS256', expiresIn: '2h'}
+            );
+
+            res.cookie('JWToken', token, { path: '/' });
+            res.send(`
+                <script>
+                    window.close();
+                    window.opener.location.href = 'http://localhost:5173/verify-client';
+                </script>
+            `);
         }
-
-        const payload = { email: createUser.email, fullName: createUser.fullName, userId: createUser._id, role: createUser.role}
-        const token = jwt.sign(
-            payload,
-            process.env.TOKEN_SECRET,
-            { algorithm: 'HS256', expiresIn: '2h'}
-        );
-
-        return res.status(200).json({ authToken: token})
-
-    }catch(err){
-        res.status(400).json({ message: 'Internal Server Error'})
-    }
+    } catch(err) {
+        res.status(400).json({ errorMsg: "Internal Server Error"})
+        console.log(err)
+    } 
 })
 
 module.exports = router;
