@@ -27,6 +27,9 @@ app.use("/api", indexRoutes);
 const authRouter = require("./routes/auth.routes");
 app.use("/auth", authRouter);
 
+const authGoogleRouter = require("./routes/auth-google.routes");
+app.use("/auth-google", authGoogleRouter);
+
 const productRouter = require("./routes/product.routes");
 app.use("/api", productRouter);
 
